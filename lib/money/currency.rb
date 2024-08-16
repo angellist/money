@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # encoding: utf-8
 
 require "json"
@@ -35,8 +36,8 @@ class Money
 
     class << self
       def new(id)
-        id = id.to_s.downcase
-        unless stringified_keys.include?(id)
+        id = id&.to_sym&.downcase
+        unless table.include?(id)
           raise UnknownCurrency, "Unknown currency '#{id}'"
         end
 
@@ -273,7 +274,7 @@ class Money
     # @example
     #   Money::Currency.new(:usd) #=> #<Money::Currency id: usd ...>
     def initialize(id)
-      @id = id.to_sym
+      @id = id&.to_sym&.downcase
       initialize_data!
     end
 

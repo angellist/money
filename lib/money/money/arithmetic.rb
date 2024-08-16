@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Money
   module Arithmetic
     # Wrapper for coerced numeric values to distinguish

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Money
   # Provides classes that aid in the ability of exchange one currency with
   # another.
