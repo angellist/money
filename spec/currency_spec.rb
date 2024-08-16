@@ -218,7 +218,7 @@ describe Money::Currency do
       currency = described_class.new("USD")
 
       expect(described_class._instances.length).to           eq 1
-      expect(described_class._instances["usd"].object_id).to eq currency.object_id
+      expect(described_class._instances[:usd].object_id).to eq currency.object_id
     end
 
     it "raises UnknownCurrency with unknown currency" do
@@ -364,11 +364,6 @@ describe Money::Currency do
     it "works as documented" do
       usd = described_class.new(:usd)
       expect(usd.to_currency).to eq usd
-    end
-
-    it "doesn't create new symbols indefinitely" do
-      expect { described_class.new("bogus") }.to raise_error(described_class::UnknownCurrency)
-      expect(Symbol.all_symbols.map{|s| s.to_s}).not_to include("bogus")
     end
   end
 

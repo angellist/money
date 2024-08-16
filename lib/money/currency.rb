@@ -60,7 +60,6 @@ class Money
       #   Money::Currency.find(:eur) #=> #<Money::Currency id: eur ...>
       #   Money::Currency.find(:foo) #=> nil
       def find(id)
-        id = id.to_s.downcase.to_sym
         new(id)
       rescue UnknownCurrency
         nil
@@ -141,16 +140,6 @@ class Money
         end.sort_by(&:priority)
       end
 
-      # We need a string-based validator before creating an unbounded number of
-      # symbols.
-      # http://www.randomhacks.net/articles/2007/01/20/13-ways-of-looking-at-a-ruby-symbol#11
-      # https://github.com/RubyMoney/money/issues/132
-      #
-      # @return [Set]
-      def stringified_keys
-        @stringified_keys ||= stringify_keys
-      end
-
       # Register a new currency
       #
       # @param curr [Hash] information about the currency
@@ -169,10 +158,9 @@ class Money
       #   amounts
       # @option delimiter [String] character between each thousands place
       def register(curr)
-        key = curr.fetch(:iso_code).downcase.to_sym
-        @@mutex.synchronize { _instances.delete(key.to_s) }
+        key = curr.fetch(:iso_code).to_sym.downcase
+        @@mutex.synchronize { _instances.delete(key.to_sym) }
         @table[key] = curr
-        @stringified_keys = nil
       end
 
       # Inherit a new currency from existing one
@@ -180,7 +168,7 @@ class Money
       # @param parent_iso_code [String] the international 3-letter code as defined
       # @param curr [Hash] See {register} method for hash structure
       def inherit(parent_iso_code, curr)
-        parent_iso_code = parent_iso_code.downcase.to_sym
+        parent_iso_code = parent_iso_code.to_sym.downcase
         curr = @table.fetch(parent_iso_code, {}).merge(curr)
         register(curr)
       end
@@ -194,13 +182,12 @@ class Money
       #   if it didn't.
       def unregister(curr)
         if curr.is_a?(Hash)
-          key = curr.fetch(:iso_code).downcase.to_sym
+          key = curr.fetch(:iso_code).to_sym.downcase
         else
-          key = curr.downcase.to_sym
+          key = curr.to_sym.downcase
         end
-        existed = @table.delete(key)
-        @stringified_keys = nil if existed
-        existed ? true : false
+
+        @table.delete(key)
       end
 
       def each
@@ -210,12 +197,6 @@ class Money
       def reset!
         @@instances = {}
         @table = Loader.load_currencies
-      end
-
-      private
-
-      def stringify_keys
-        table.keys.each_with_object(Set.new) { |k, set| set.add(k.to_s.downcase) }
       end
     end
 
@@ -320,11 +301,11 @@ class Money
 
     def compare_ids(other_currency)
       other_currency_id = if other_currency.is_a?(Currency)
-                            other_currency.id.to_s.downcase
+                            other_currency.id
                           else
-                            other_currency.to_s.downcase
+                            other_currency&.to_sym&.downcase
                           end
-      self.id.to_s.downcase == other_currency_id
+      self.id == other_currency_id
     end
     private :compare_ids
 
@@ -361,7 +342,7 @@ class Money
     #   Money::Currency.new(:usd).to_s #=> "USD"
     #   Money::Currency.new(:eur).to_s #=> "EUR"
     def to_s
-      id.to_s.upcase
+      id.upcase.to_s
     end
 
     # Returns a string representation corresponding to the upcase +id+
@@ -373,7 +354,7 @@ class Money
     #   Money::Currency.new(:usd).to_str #=> "USD"
     #   Money::Currency.new(:eur).to_str #=> "EUR"
     def to_str
-      id.to_s.upcase
+      id.upcase.to_s
     end
 
     # Returns a symbol representation corresponding to the upcase +id+
@@ -385,7 +366,7 @@ class Money
     #   Money::Currency.new(:usd).to_sym #=> :USD
     #   Money::Currency.new(:eur).to_sym #=> :EUR
     def to_sym
-      id.to_s.upcase.to_sym
+      id.upcase
     end
 
     # Conversion to +self+.
