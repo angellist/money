@@ -273,11 +273,13 @@ class Money
     #   c2 <=> c1 #=> -1
     #   c1 <=> c1 #=> 0
     def <=>(other_currency)
+      other_currency = Currency.find(other_currency) unless other_currency.is_a?(Currency)
+
       # <=> returns nil when one of the values is nil
-      comparison = self.priority <=> other_currency.priority || 0
+      comparison = self.priority <=> other_currency&.priority || 0
 
       if comparison == 0
-        self.id <=> other_currency.id
+        self.id <=> other_currency&.id
       else
         comparison
       end

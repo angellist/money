@@ -273,6 +273,16 @@ describe Money::Currency do
         described_class.unregister(iso_code: "ABD")
       end
     end
+
+    it "allows comparison of currency-like objects" do
+      described_class.register(iso_code: "ABC", priority: 0)
+      described_class.register(iso_code: "ABD", priority: 1)
+      abd = described_class.find("ABD")
+
+      list = [abd, "ABC"]
+
+      expect(list.sort.last).to eq abd
+    end
   end
 
   describe "#==" do
